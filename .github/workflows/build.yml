@@ -31,8 +31,15 @@ jobs:
     - name: Extract SHA-1 Fingerprint
       run: |
         echo "=== Getting SHA-1 ==="
-        ./gradlew signingReport --no-daemon 2>&1 | grep "SHA1:" | head -1
+        ./gradlew signingReport --no-daemon 2>&1 | grep "SHA1:" | head -1 | tee sha1.txt
         echo "====================="
+
+    - name: Upload SHA-1
+      uses: actions/upload-artifact@v4
+      with:
+        name: SHA1-Fingerprint
+        path: sha1.txt
+        retention-days: 30
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug --no-daemon
