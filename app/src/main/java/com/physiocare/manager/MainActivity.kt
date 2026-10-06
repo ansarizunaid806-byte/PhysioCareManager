@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.physiocare.manager.ui.navigation.AppNavigation
+import com.physiocare.manager.ui.screens.onboarding.OnboardingScreen
 import com.physiocare.manager.ui.theme.PhysioCareTheme
 import com.physiocare.manager.viewmodel.SettingsViewModel
 import com.physiocare.manager.viewmodel.dataStore
@@ -40,8 +41,18 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-                    AppNavigation(navController = navController)
+                    if (!settingsState.onboardingComplete && !settingsState.isLoading) {
+                        // Show onboarding
+                        OnboardingScreen(
+                            onComplete = { clinicName, therapistName ->
+                                settingsVm.completeOnboarding(clinicName, therapistName)
+                            }
+                        )
+                    } else if (!settingsState.isLoading) {
+                        // Show main app
+                        val navController = rememberNavController()
+                        AppNavigation(navController = navController)
+                    }
                 }
             }
         }

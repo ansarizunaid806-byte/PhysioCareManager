@@ -14,20 +14,24 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 
 object SettingsKeys {
     val CLINIC_NAME = stringPreferencesKey("clinic_name")
+    val THERAPIST_NAME = stringPreferencesKey("therapist_name")
     val REMINDER_HOUR = intPreferencesKey("reminder_hour")
     val REMINDER_MINUTE = intPreferencesKey("reminder_minute")
     val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
     val APP_LOCK_PIN = stringPreferencesKey("app_lock_pin")
     val DARK_MODE = stringPreferencesKey("dark_mode") // "system", "light", "dark"
+    val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
 }
 
 data class SettingsState(
     val clinicName: String = "PhysioCare Clinic",
+    val therapistName: String = "",
     val reminderHour: Int = 20, // 8 PM default
     val reminderMinute: Int = 0,
     val appLockEnabled: Boolean = false,
     val appLockPin: String = "",
     val darkMode: String = "system",
+    val onboardingComplete: Boolean = false,
     val isLoading: Boolean = true
 )
 
@@ -48,11 +52,13 @@ class SettingsViewModel(
                 _state.update {
                     it.copy(
                         clinicName = prefs[SettingsKeys.CLINIC_NAME] ?: "PhysioCare Clinic",
+                        therapistName = prefs[SettingsKeys.THERAPIST_NAME] ?: "",
                         reminderHour = prefs[SettingsKeys.REMINDER_HOUR] ?: 20,
                         reminderMinute = prefs[SettingsKeys.REMINDER_MINUTE] ?: 0,
                         appLockEnabled = prefs[SettingsKeys.APP_LOCK_ENABLED] ?: false,
                         appLockPin = prefs[SettingsKeys.APP_LOCK_PIN] ?: "",
                         darkMode = prefs[SettingsKeys.DARK_MODE] ?: "system",
+                        onboardingComplete = prefs[SettingsKeys.ONBOARDING_COMPLETE] ?: false,
                         isLoading = false
                     )
                 }
@@ -93,6 +99,16 @@ class SettingsViewModel(
     fun setDarkMode(mode: String) {
         viewModelScope.launch {
             dataStore.edit { it[SettingsKeys.DARK_MODE] = mode }
+        }
+    }
+
+    fun completeOnboarding(clinicName: String, therapistName: String) {
+        viewModelScope.launch {
+            dataStore.edit {
+                it[SettingsKeys.CLINIC_NAME] = clinicName
+                it[SettingsKeys.THERAPIST_NAME] = therapistName
+                it[SettingsKeys.ONBOARDING_COMPLETE] = true
+            }
         }
     }
 

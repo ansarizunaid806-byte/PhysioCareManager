@@ -81,35 +81,42 @@ fun PatientListItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
+            // Avatar with gradient
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(50.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.tertiary
+                            )
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = patient.fullName.take(2).uppercase(),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -117,6 +124,7 @@ fun PatientListItem(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = patient.condition,
                     style = MaterialTheme.typography.bodySmall,
@@ -124,18 +132,27 @@ fun PatientListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = if (patient.status == "Active") SessionPresent.copy(alpha = 0.12f)
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Text(
+                            text = patient.status,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (patient.status == "Active") SessionPresent
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                     Text(
-                        text = patient.status,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (patient.status == "Active") SessionPresent
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "• ${CurrencyUtils.format(patient.perSessionCharge)}/session",
+                        text = "${CurrencyUtils.format(patient.perSessionCharge)}/session",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -144,16 +161,25 @@ fun PatientListItem(
 
             if (outstandingAmount > 0) {
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(10.dp),
                     color = PaymentDue.copy(alpha = 0.1f)
                 ) {
-                    Text(
-                        text = "Due ${CurrencyUtils.format(outstandingAmount)}",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = PaymentDue,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Column(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = CurrencyUtils.format(outstandingAmount),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = PaymentDue,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "DUE",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = PaymentDue.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
