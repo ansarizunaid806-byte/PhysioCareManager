@@ -99,15 +99,25 @@ class AuthViewModel : ViewModel() {
             }
 
             try {
-                PhoneAuthProvider.getInstance(auth)
-                    .verifyPhoneNumber(
+                val provider = PhoneAuthProvider.getInstance(auth)
+                if (resendToken != null) {
+                    provider.verifyPhoneNumber(
                         phoneNumber,
                         60,
                         TimeUnit.SECONDS,
                         activity,
                         callbacks,
-                        forceResendingToken = resendToken
+                        resendToken
                     )
+                } else {
+                    provider.verifyPhoneNumber(
+                        phoneNumber,
+                        60,
+                        TimeUnit.SECONDS,
+                        activity,
+                        callbacks
+                    )
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, error = e.message) }
             }
