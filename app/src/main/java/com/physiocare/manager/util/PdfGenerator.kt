@@ -71,43 +71,45 @@ class PdfGenerator(private val context: Context) {
         y += 15f
 
         // Session rows
+        var currentPage = page
+        var currentCanvas = canvas
+        var currentY = y
         for (session in sessions.filter { it.status == "Present" }) {
-            if (y > 750f) {
+            if (currentY > 750f) {
                 // End page and start new one if needed
-                pdfDocument.finishPage(page)
-                val newPage = pdfDocument.startPage(PdfDocument.PageInfo.Builder(595, 842, pdfDocument.pageCount).create())
-                val newCanvas = newPage.canvas
-                page = newPage
-                y = 40f
-                canvas = newCanvas
+                pdfDocument.finishPage(currentPage)
+                val newPage = pdfDocument.startPage(PdfDocument.PageInfo.Builder(595, 842, pdfDocument.pages.size + 1).create())
+                currentPage = newPage
+                currentCanvas = newPage.canvas
+                currentY = 40f
             }
-            canvas.drawText(DateUtils.formatEpoch(session.date), 40f, y, bodyPaint)
-            canvas.drawText(session.status, 200f, y, bodyPaint)
-            canvas.drawText(CurrencyUtils.format(session.charge), 350f, y, bodyPaint)
-            canvas.drawText(session.paymentStatus, 470f, y, bodyPaint)
-            y += 20f
+            currentCanvas.drawText(DateUtils.formatEpoch(session.date), 40f, currentY, bodyPaint)
+            currentCanvas.drawText(session.status, 200f, currentY, bodyPaint)
+            currentCanvas.drawText(CurrencyUtils.format(session.charge), 350f, currentY, bodyPaint)
+            currentCanvas.drawText(session.paymentStatus, 470f, currentY, bodyPaint)
+            currentY += 20f
         }
 
-        y += 15f
-        canvas.drawLine(40f, y, 555f, y, bodyPaint)
-        y += 20f
+        currentY += 15f
+        currentCanvas.drawLine(40f, currentY, 555f, currentY, bodyPaint)
+        currentY += 20f
 
         // Summary
-        canvas.drawText("Total Sessions: ${sessions.count { it.status == "Present" }}", 40f, y, headingPaint)
-        y += 25f
-        canvas.drawText("Total Charges: ${CurrencyUtils.format(totalCharges)}", 40f, y, headingPaint)
-        y += 25f
-        canvas.drawText("Total Paid: ${CurrencyUtils.format(totalPaid)}", 40f, y, headingPaint)
-        y += 25f
+        currentCanvas.drawText("Total Sessions: ${sessions.count { it.status == "Present" }}", 40f, currentY, headingPaint)
+        currentY += 25f
+        currentCanvas.drawText("Total Charges: ${CurrencyUtils.format(totalCharges)}", 40f, currentY, headingPaint)
+        currentY += 25f
+        currentCanvas.drawText("Total Paid: ${CurrencyUtils.format(totalPaid)}", 40f, currentY, headingPaint)
+        currentY += 25f
         val balance = totalCharges - totalPaid
-        canvas.drawText("Balance Due: ${CurrencyUtils.format(balance)}", 40f, y, headingPaint)
-        y += 30f
+        currentCanvas.drawText("Balance Due: ${CurrencyUtils.format(balance)}", 40f, currentY, headingPaint)
+        currentY += 30f
 
-        canvas.drawText("Thank you for your visit!", 40f, y, smallPaint)
-        y += 15f
-        canvas.drawText("Generated on ${DateUtils.formatEpoch(System.currentTimeMillis())}", 40f, y, smallPaint)
+        currentCanvas.drawText("Thank you for your visit!", 40f, currentY, smallPaint)
+        currentY += 15f
+        currentCanvas.drawText("Generated on ${DateUtils.formatEpoch(System.currentTimeMillis())}", 40f, currentY, smallPaint)
 
-        pdfDocument.finishPage(page)
+        pdfDocument.finishPage(currentPage)
 
         val billDir = File(context.cacheDir, "bills")
         if (!billDir.exists()) billDir.mkdirs()

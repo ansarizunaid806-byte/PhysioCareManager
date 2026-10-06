@@ -99,7 +99,7 @@ fun PatientProfileScreen(
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider()
+                            Divider()
                             Spacer(modifier = Modifier.height(12.dp))
 
                             // Financial summary

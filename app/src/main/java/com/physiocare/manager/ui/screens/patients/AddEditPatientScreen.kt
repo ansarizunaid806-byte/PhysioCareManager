@@ -207,7 +207,7 @@ fun AddEditPatientScreen(
                     singleLine = true
                 )
 
-                HorizontalDivider()
+                Divider()
 
                 Text("Treatment Details", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
 
