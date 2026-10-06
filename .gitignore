@@ -1,0 +1,39 @@
+# PhysioCare Manager - .gitignore
+
+# Built files
+*.iml
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Gradle
+.gradle/
+build/
+app/build/
+captures/
+
+# Local configuration
+local.properties
+keystore.properties
+
+# Keystore (NEVER commit signing keys)
+*.jks
+*.keystore
+
+# Android Studio
+.idea/
+*.swp
+*~
+.navigation/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# KSP / KAPT
+app/schemas/
+
+# Misc
+*.log
+*.hprof
