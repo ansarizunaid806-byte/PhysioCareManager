@@ -190,4 +190,5 @@ cd PhysioCareManager
 - Backup/restore controlled by user
 
 ## 📄 License
-MIT License — Free to use, modify, and distribute.
+**Proprietary — All rights reserved by the owner.**
+This is your private commercial software. You have full rights to sell, modify, distribute, or rebrand it as you wish.
