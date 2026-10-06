@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "physiocare-manager-placeholder",
-    "storage_bucket": "physiocare-manager-placeholder.appspot.com"
+    "project_number": "1755005097",
+    "project_id": "physiocaremanager",
+    "storage_bucket": "physiocaremanager.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+        "mobilesdk_app_id": "1:1755005097:android:ab93583ffe7923a86d69b8",
         "android_client_info": {
           "package_name": "com.physiocare.manager"
         }
@@ -15,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "PLACEHOLDER_API_KEY_REPLACE_WITH_REAL_ONE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000001",
-        "android_client_info": {
-          "package_name": "com.physiocare.manager.debug"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "PLACEHOLDER_API_KEY_REPLACE_WITH_REAL_ONE"
+          "current_key": "AIzaSyBm9byoP9sF7QhR3bRb6FMCajNfEhl9-z4"
         }
       ],
       "services": {
