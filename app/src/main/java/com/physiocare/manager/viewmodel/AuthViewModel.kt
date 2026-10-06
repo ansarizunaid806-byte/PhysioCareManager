@@ -1,5 +1,6 @@
 package com.physiocare.manager.viewmodel
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.FirebaseException
@@ -20,7 +21,7 @@ data class AuthState(
     val phone: String? = null,
     val error: String? = null,
     val verificationId: String? = null,
-    val isPhoneMode: Boolean = true // true = phone, false = email
+    val isPhoneMode: Boolean = true
 )
 
 sealed class AuthEvent {
@@ -42,9 +43,9 @@ class AuthViewModel : ViewModel() {
 
     private var storedVerificationId: String? = null
     private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
+    private var currentActivity: Activity? = null
 
     init {
-        // Check if user is already logged in
         val currentUser = auth.currentUser
         if (currentUser != null) {
             _state.value = AuthState(
@@ -57,6 +58,10 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun setActivity(activity: Activity) {
+        currentActivity = activity
+    }
+
     fun setAuthMode(isPhoneMode: Boolean) {
         _state.update { it.copy(isPhoneMode = isPhoneMode, error = null) }
     }
@@ -64,12 +69,16 @@ class AuthViewModel : ViewModel() {
     // ========== PHONE AUTH ==========
 
     fun sendOtp(phoneNumber: String) {
+        val activity = currentActivity ?: run {
+            _state.update { it.copy(error = "Please wait, initializing...") }
+            return
+        }
+
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
             val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    // Auto-verification (instant verification)
                     signInWithPhoneCredential(credential)
                 }
 
@@ -90,12 +99,12 @@ class AuthViewModel : ViewModel() {
             }
 
             try {
-                PhoneAuthProvider.getAuthInstance(auth)
+                PhoneAuthProvider.getInstance(auth)
                     .verifyPhoneNumber(
                         phoneNumber,
-                        60, // Timeout duration
+                        60,
                         TimeUnit.SECONDS,
-                        com.google.firebase.Firebase.app, // Use the activity
+                        activity,
                         callbacks,
                         forceResendingToken = resendToken
                     )
@@ -127,7 +136,6 @@ class AuthViewModel : ViewModel() {
                 val result = auth.signInWithCredential(credential).await()
                 val user = result.user
                 if (user != null) {
-                    // Create or fetch user profile in Firestore
                     createUserProfileIfNotExists(user.uid, phone = user.phoneNumber)
                     _state.update {
                         it.copy(
@@ -156,12 +164,10 @@ class AuthViewModel : ViewModel() {
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val user = result.user
                 if (user != null) {
-                    // Update display name
-                    user.updateProfile(
-                        userProfileChangeRequest { setDisplayName(name) }
-                    ).await()
-
-                    // Create user profile in Firestore
+                    val profileUpdates = userProfileChangeRequest {
+                        this.displayName = name
+                    }
+                    user.updateProfile(profileUpdates).await()
                     createUserProfileIfNotExists(user.uid, email = email, name = name)
 
                     _state.update {
@@ -233,13 +239,10 @@ class AuthViewModel : ViewModel() {
                 )
                 firestore.collection("users").document(uid).set(userProfile).await()
             } else {
-                // Update last login
                 firestore.collection("users").document(uid)
                     .update("lastLoginAt", System.currentTimeMillis()).await()
             }
-        } catch (e: Exception) {
-            // Non-critical, continue
-        }
+        } catch (_: Exception) { }
     }
 
     fun logout() {
@@ -252,7 +255,6 @@ class AuthViewModel : ViewModel() {
     }
 }
 
-// Helper extension for UserProfileChangeRequest
 private inline fun userProfileChangeRequest(block: UserProfileChangeRequest.Builder.() -> Unit): UserProfileChangeRequest {
     val builder = UserProfileChangeRequest.Builder()
     builder.block()

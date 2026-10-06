@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.physiocare.manager.ui.theme.*
@@ -29,8 +30,14 @@ import com.physiocare.manager.viewmodel.AuthViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginSignupScreen(viewModel: AuthViewModel) {
+    val context = LocalContext.current
+    val activity = context as? android.app.Activity
+
+    LaunchedEffect(Unit) {
+        activity?.let { viewModel.setActivity(it) }
+    }
     val state by viewModel.state.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) } // 0=Phone, 1=Email
+    var selectedTab by remember { mutableStateOf(0) } // 0=Phone, 1=Email
     var isLoginMode by remember { mutableStateOf(true) }
 
     // Phone fields
