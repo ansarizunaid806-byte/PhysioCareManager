@@ -27,7 +27,11 @@ jobs:
       run: |
         gradle wrapper --gradle-version 8.2
         chmod +x gradlew
-
+    - name: Extract SHA-1 Fingerprint
+      run: |
+        echo "=== SHA-1 FINGERPRINT ==="
+        keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android 2>&1 | grep "SHA1:"
+        echo "========================="
     - name: Build Debug APK
       run: ./gradlew assembleDebug --no-daemon
 
