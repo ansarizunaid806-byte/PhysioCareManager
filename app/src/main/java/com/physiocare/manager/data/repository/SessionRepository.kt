@@ -2,9 +2,13 @@ package com.physiocare.manager.data.repository
 
 import com.physiocare.manager.data.local.dao.SessionDao
 import com.physiocare.manager.data.local.entity.SessionEntity
+import com.physiocare.manager.data.sync.CloudSyncManager
 import kotlinx.coroutines.flow.Flow
 
-class SessionRepository(private val sessionDao: SessionDao) {
+class SessionRepository(
+    private val sessionDao: SessionDao,
+    private val cloudSyncManager: CloudSyncManager? = null
+) {
 
     fun getSessionsByPatient(patientId: Long): Flow<List<SessionEntity>> =
         sessionDao.getSessionsByPatient(patientId)
@@ -61,11 +65,20 @@ class SessionRepository(private val sessionDao: SessionDao) {
     suspend fun getSessionForPatientDate(patientId: Long, date: Long): SessionEntity? =
         sessionDao.getSessionForPatientDate(patientId, date)
 
-    suspend fun insert(session: SessionEntity): Long = sessionDao.insert(session)
+    suspend fun insert(session: SessionEntity): Long {
+        val id = sessionDao.insert(session)
+        cloudSyncManager?.syncToCloud(emptyList(), listOf(session), emptyList())
+        return id
+    }
 
-    suspend fun update(session: SessionEntity) = sessionDao.update(session)
+    suspend fun update(session: SessionEntity) {
+        sessionDao.update(session)
+        cloudSyncManager?.syncToCloud(emptyList(), listOf(session), emptyList())
+    }
 
-    suspend fun delete(session: SessionEntity) = sessionDao.delete(session)
+    suspend fun delete(session: SessionEntity) {
+        sessionDao.delete(session)
+    }
 
     suspend fun markSessionsAsPaid(ids: List<Long>) = sessionDao.markSessionsAsPaid(ids)
 
