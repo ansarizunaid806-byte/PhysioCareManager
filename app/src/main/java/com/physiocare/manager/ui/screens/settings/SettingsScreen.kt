@@ -28,7 +28,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     backupManager: BackupManager,
     context: Context,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
@@ -340,13 +341,17 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("PhysioCare Manager", fontWeight = FontWeight.Bold)
-                    Text("Version 1.0.0", style = MaterialTheme.typography.bodySmall)
+                    Text("Version 1.1.0", style = MaterialTheme.typography.bodySmall)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "Offline-first physiotherapy practice management. Your data stays on your device.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextButton(onClick = { onNavigateToPrivacyPolicy() }) {
+                        Text("Privacy Policy")
+                    }
                 }
             }
 

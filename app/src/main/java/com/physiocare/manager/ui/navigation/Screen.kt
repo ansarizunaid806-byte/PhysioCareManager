@@ -21,4 +21,5 @@ sealed class Screen(val route: String) {
     object BillStatement : Screen("bill/{patientId}") {
         fun createRoute(patientId: Long) = "bill/$patientId"
     }
+    object PrivacyPolicy : Screen("privacy_policy")
 }

@@ -162,7 +162,8 @@ fun AppNavigation(navController: NavHostController) {
                 viewModel = vm,
                 backupManager = container.backupManager,
                 context = context,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) }
             )
         }
 
@@ -203,6 +204,12 @@ fun AppNavigation(navController: NavHostController) {
                 pdfGenerator = container.pdfGenerator,
                 settingsViewModel = viewModel(factory = SettingsViewModel.Factory(context.dataStore)),
                 context = context,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.PrivacyPolicy.route) {
+            com.physiocare.manager.ui.screens.legal.PrivacyPolicyScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
