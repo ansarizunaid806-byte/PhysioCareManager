@@ -30,9 +30,10 @@ jobs:
 
     - name: Extract SHA-1 Fingerprint
       run: |
-        echo "=== Getting SHA-1 ==="
-        ./gradlew signingReport --no-daemon 2>&1 | grep "SHA1:" | head -1 | tee sha1.txt
-        echo "====================="
+        echo "=== Extracting SHA-1 from debug keystore ==="
+        keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android 2>/dev/null | grep "SHA1:" | sed 's/.*SHA1: //' > sha1.txt
+        cat sha1.txt
+        echo "==========================================="
 
     - name: Upload SHA-1
       uses: actions/upload-artifact@v4
