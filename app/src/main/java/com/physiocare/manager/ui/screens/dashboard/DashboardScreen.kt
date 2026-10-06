@@ -319,6 +319,7 @@ fun DashboardScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
