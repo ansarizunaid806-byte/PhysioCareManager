@@ -19,8 +19,6 @@ class CloudSyncManager {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
-    private var isSyncing = false
-
     /**
      * Upload all local data to Firestore for the current user.
      * Call this after login or when data changes significantly.
@@ -31,8 +29,6 @@ class CloudSyncManager {
         payments: List<PaymentEntity>
     ) = withContext(Dispatchers.IO) {
         val userId = auth.currentUser?.uid ?: return@withContext
-        if (isSyncing) return@withContext
-        isSyncing = true
 
         try {
             // Upload patients
@@ -104,9 +100,8 @@ class CloudSyncManager {
             }
 
         } catch (e: Exception) {
-            // Silently fail - will retry on next sync
-        } finally {
-            isSyncing = false
+            // Will retry on next sync
+            android.util.Log.e("CloudSync", "Upload failed: ${e.message}", e)
         }
     }
 
@@ -192,7 +187,7 @@ class CloudSyncManager {
                 }
 
             } catch (e: Exception) {
-                // Return what we have so far
+                android.util.Log.e("CloudSync", "Download failed: ${e.message}", e)
             }
 
             Triple(patients, sessions, payments)

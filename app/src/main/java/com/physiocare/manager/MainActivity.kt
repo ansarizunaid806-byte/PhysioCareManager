@@ -1,6 +1,7 @@
 package com.physiocare.manager
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,11 +12,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.datastore.preferences.core.Preferences
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
-import com.physiocare.manager.data.sync.CloudSyncManager
 import com.physiocare.manager.ui.navigation.AppNavigation
 import com.physiocare.manager.ui.screens.auth.LoginSignupScreen
 import com.physiocare.manager.ui.screens.onboarding.OnboardingScreen
@@ -23,6 +23,7 @@ import com.physiocare.manager.ui.theme.PhysioCareTheme
 import com.physiocare.manager.viewmodel.AuthViewModel
 import com.physiocare.manager.viewmodel.SettingsViewModel
 import com.physiocare.manager.viewmodel.dataStore
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -54,11 +55,11 @@ class MainActivity : ComponentActivity() {
                 else -> androidx.compose.foundation.isSystemInDarkTheme()
             }
 
-            // Sync data from cloud when user logs in
+            // Sync data bidirectionally when user logs in
             LaunchedEffect(authState.isLoggedIn) {
                 if (authState.isLoggedIn && !hasSyncedOnLogin) {
                     hasSyncedOnLogin = true
-                    syncDataFromCloud()
+                    performFullSync()
                 } else if (!authState.isLoggedIn) {
                     hasSyncedOnLogin = false
                 }
@@ -90,25 +91,44 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun syncDataFromCloud() {
-        Thread {
+    /**
+     * Full bidirectional sync:
+     * 1. Upload all local data to Firestore (so cloud has everything)
+     * 2. Download all data from Firestore (so local has everything from cloud)
+     * This handles both "new device" and "existing device" scenarios.
+     */
+    private fun performFullSync() {
+        lifecycleScope.launch {
             try {
-                val database = com.physiocare.manager.data.local.AppDatabase.getInstance(this)
-                val (patients, sessions, payments) = appContainer.cloudSyncManager.syncFromCloud()
+                Log.d("PhysioCare", "Starting full cloud sync...")
+                val database = com.physiocare.manager.data.local.AppDatabase.getInstance(this@MainActivity)
 
-                // Insert downloaded data into local database
-                if (patients.isNotEmpty()) {
-                    patients.forEach { database.patientDao().insert(it) }
+                // Step 1: Upload ALL local data to cloud first
+                val localPatients = appContainer.patientRepository.getAllPatientsOnce()
+                val localSessions = appContainer.sessionRepository.getAllSessionsOnce()
+                val localPayments = appContainer.paymentRepository.getAllPaymentsOnce()
+
+                Log.d("PhysioCare", "Uploading: ${localPatients.size} patients, ${localSessions.size} sessions, ${localPayments.size} payments")
+
+                if (localPatients.isNotEmpty() || localSessions.isNotEmpty() || localPayments.isNotEmpty()) {
+                    appContainer.cloudSyncManager.syncToCloud(localPatients, localSessions, localPayments)
+                    Log.d("PhysioCare", "Upload to cloud complete")
                 }
-                if (sessions.isNotEmpty()) {
-                    sessions.forEach { database.sessionDao().insert(it) }
-                }
-                if (payments.isNotEmpty()) {
-                    payments.forEach { database.paymentDao().insert(it) }
-                }
+
+                // Step 2: Download ALL data from cloud
+                val (cloudPatients, cloudSessions, cloudPayments) = appContainer.cloudSyncManager.syncFromCloud()
+
+                Log.d("PhysioCare", "Downloaded: ${cloudPatients.size} patients, ${cloudSessions.size} sessions, ${cloudPayments.size} payments")
+
+                // Step 3: Insert downloaded data into local database (REPLACE strategy handles duplicates)
+                cloudPatients.forEach { database.patientDao().insert(it) }
+                cloudSessions.forEach { database.sessionDao().insert(it) }
+                cloudPayments.forEach { database.paymentDao().insert(it) }
+
+                Log.d("PhysioCare", "Full sync complete!")
             } catch (e: Exception) {
-                // Silently fail
+                Log.e("PhysioCare", "Sync failed: ${e.message}", e)
             }
-        }.start()
+        }
     }
 }
