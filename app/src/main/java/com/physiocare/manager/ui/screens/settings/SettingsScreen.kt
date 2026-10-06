@@ -29,7 +29,8 @@ fun SettingsScreen(
     backupManager: BackupManager,
     context: Context,
     onNavigateBack: () -> Unit,
-    onNavigateToPrivacyPolicy: () -> Unit = {}
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
@@ -42,6 +43,7 @@ fun SettingsScreen(
     var reminderHour by remember { mutableStateOf(20) }
     var reminderMinute by remember { mutableStateOf(0) }
     var pinInput by remember { mutableStateOf("") }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -327,6 +329,36 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Account & Logout
+            Text(
+                "Account",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                onClick = { showLogoutDialog = true }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Logout, null, tint = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Logout", fontWeight = FontWeight.SemiBold)
+                        Text("Sign out and clear local data", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // About
             Text(
                 "About",
@@ -457,6 +489,26 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { pinDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    // Logout Dialog
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Logout") },
+            text = { Text("Are you sure you want to logout? Your data is safely stored in the cloud and will be available when you login again.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    onLogout()
+                }) {
+                    Text("Logout", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
             }
         )
     }

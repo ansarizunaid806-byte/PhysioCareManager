@@ -29,6 +29,7 @@ fun AppNavigation(navController: NavHostController) {
     val context = LocalContext.current
     val app = context.applicationContext as PhysioCareApp
     val container = app.appContainer
+    val authVm: com.physiocare.manager.viewmodel.AuthViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -163,7 +164,8 @@ fun AppNavigation(navController: NavHostController) {
                 backupManager = container.backupManager,
                 context = context,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) }
+                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                onLogout = { authVm.logout() }
             )
         }
 
